@@ -38,9 +38,16 @@ if __name__ == '__main__':
         minimum_allowance = vars['minimum_allowance']
         maximum_allowance = vars['maximum_allowance']
 
+        random_lock_amount = vars['random_lock_amount']
+        maximal_lock_amount = vars['maximal_lock_amount']
+
         token_contract_address = vars['token_contract']
         merkletree_contract_address = vars['merkletree_contract']
         lock_contract = vars['lock_contract']
+
+        gas_price = vars['gas_price']
+
+        http_provider = vars['http_provider']
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--start", type=int)
@@ -59,10 +66,11 @@ if __name__ == '__main__':
     print(f"receipt_count_minimal : {receipt_count_minimal}")
     print(f"receipt_count_maximal : {receipt_count_maximal}")
 
-    w3 = Web3(Web3.HTTPProvider("https://ropsten.infura.io/v3/cc8d19ee21984baeafffa1713b390016"))
-    lock = LockContract(w3, lock_contract)
-    tree = TreeContract(w3, owner_key, merkletree_contract_address)
-    token = TokenContract(w3, token_contract_address)
+    # w3 = Web3(Web3.HTTPProvider("https://ropsten.infura.io/v3/cc8d19ee21984baeafffa1713b390016"))
+    w3 = Web3(Web3.HTTPProvider(http_provider))
+    lock = LockContract(w3, lock_contract, gas_price)
+    tree = TreeContract(w3, owner_key, merkletree_contract_address, gas_price)
+    token = TokenContract(w3, token_contract_address, gas_price)
 
     receipt_count_in_tree = tree.receipt_count_in_tree()
     receipt_count_for_lock = lock.get_receipt_count()
@@ -100,7 +108,7 @@ if __name__ == '__main__':
             # check allowance
             allowance = token.get_allowance(private_key, lock.address)
             if allowance < minimum_allowance:
-                approve_id = token.approve_token(private_key, lock.address)
+                approve_id = token.approve_token(private_key, lock.address, maximum_allowance)
                 approve_tx_id_pending_list[private_key_index] = approve_id
                 continue
 
@@ -126,7 +134,8 @@ if __name__ == '__main__':
             if pending_count + len(tx_receipt_list) >= i:
                 continue
 
-            amount = random.randint(minimum_allowance, allowance)
+            balance = token.get_balance(private_key)
+            amount = random.randint(minimum_allowance, min(maximal_lock_amount, balance))
             receipt_tx_id = lock.create_receipt(private_key,
                                                 target_addresses[j % len(target_addresses)], amount)
             if receipt_tx_id is not None:

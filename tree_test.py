@@ -2,9 +2,10 @@ import api
 
 
 class TreeContract(object):
-    def __init__(self, web3, owner, addr):
+    def __init__(self, web3, owner, addr, price):
         self.Web3 = web3
         self.address = addr
+        self.gas_price = price
         self.tree_contract = web3.eth.contract(
             address=addr,
             abi=api.ContractApi.tree_contract_abi
@@ -22,7 +23,7 @@ class TreeContract(object):
             generated_tree_tx = self.tree_contract.functions.GenerateMerkleTree().buildTransaction(
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             generated_tree_tx.update({'gas': 5000000})
-            generated_tree_tx.update({'gasPrice': 20000000000})
+            generated_tree_tx.update({'gasPrice': self.gas_price})
             print("generate_merkle_tree_tx: ", generated_tree_tx)
             signed_generated_tx = self.Web3.eth.account.signTransaction(generated_tree_tx, private_key=self.owner)
             generated_tree_tx_id = self.Web3.eth.sendRawTransaction(signed_generated_tx.rawTransaction)
@@ -43,6 +44,6 @@ class TreeContract(object):
         return self.tree_contract.functions.MerkleTreeCount().call()
 
     def get_merkle_tree(self, index):
-        return self.tree_contract.functions.GetMerkleTree(treeIndex=index).call()
+        return self.tree_contract.functions.GetMerkleTree(index).call()
 
 

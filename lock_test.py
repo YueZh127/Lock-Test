@@ -3,9 +3,10 @@ import time
 
 
 class LockContract(object):
-    def __init__(self, web3, addr):
+    def __init__(self, web3, addr, price):
         self.Web3 = web3
         self.address = addr
+        self.gas_price = price
         self.lock_contract = web3.eth.contract(
             address= addr,
             abi=api.ContractApi.lock_contract_abi
@@ -18,7 +19,7 @@ class LockContract(object):
             lock_tx = self.lock_contract.functions.createReceipt(amount, target_address).buildTransaction(
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             lock_tx.update({'gas': 500000})
-            lock_tx.update({'gasPrice': 20000000000})
+            lock_tx.update({'gasPrice': self.gas_price})
             print("lock_tx: ", lock_tx)
             signed_lock_tx = self.Web3.eth.account.signTransaction(lock_tx, private_key=private_key)
             lock_tx_id = self.Web3.eth.sendRawTransaction(signed_lock_tx.rawTransaction)
@@ -41,7 +42,7 @@ class LockContract(object):
             finish_tx = self.lock_contract.functions.finifinishReceipt(index).buildTransaction(
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             finish_tx.update({'gas': 500000})
-            finish_tx.update({'gasPrice': 20000000000})
+            finish_tx.update({'gasPrice': self.gas_price})
             print("finish_tx: ", finish_tx)
             signed_finish_tx = self.Web3.eth.account.signTransaction(finish_tx, private_key=private_key)
             finish_tx_id = self.Web3.eth.sendRawTransaction(signed_finish_tx.rawTransaction)
