@@ -18,8 +18,12 @@ def get_transaction(web3, tx_id):
 
 
 def wait_receipt(web3, tx_id):
-    return web3.eth.waitForTransactionReceipt(tx_id, timeout=600)
-
+    try:
+        return web3.eth.waitForTransactionReceipt(tx_id, timeout=120)
+    except Exception as e:
+        time.sleep(60)
+        print(e)
+        wait_receipt(web3, tx_id)
 
 if __name__ == '__main__':
 
