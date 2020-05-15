@@ -1,5 +1,6 @@
 import api
 
+
 class TokenContract(object):
     def __init__(self, web3, addr, price):
         self.Web3 = web3
@@ -31,3 +32,9 @@ class TokenContract(object):
     def get_balance(self, owner_private_key):
         account = self.Web3.eth.account.privateKeyToAccount(owner_private_key)
         return self.token_contract.functions.balanceOf(account.address).call()
+
+    def process_finish_transfer_event(self, tx_receipt):
+        event = self.token_contract.events.Transfer()
+        logs = event.processReceipt(tx_receipt)
+        amount = logs[0].args['value']
+        return amount

@@ -9,6 +9,7 @@ import time
 import random
 import argparse
 
+
 def get_receipt(web3, tx_id):
     return web3.eth.getTransactionReceipt(tx_id)
 
@@ -25,6 +26,7 @@ def wait_receipt(web3, tx_id):
         print(e)
         wait_receipt(web3, tx_id)
 
+
 if __name__ == '__main__':
 
     with open('vars.json', ) as f:
@@ -37,8 +39,6 @@ if __name__ == '__main__':
         owner_key = vars['owner_key']
         minimum_allowance = vars['minimum_allowance']
         maximum_allowance = vars['maximum_allowance']
-
-        random_lock_amount = vars['random_lock_amount']
         maximal_lock_amount = vars['maximal_lock_amount']
 
         token_contract_address = vars['token_contract']
@@ -72,6 +72,11 @@ if __name__ == '__main__':
     tree = TreeContract(w3, owner_key, merkletree_contract_address, gas_price)
     token = TokenContract(w3, token_contract_address, gas_price)
 
+    finish_address = {}
+    for private_key in private_keys:
+        account = w3.eth.account.privateKeyToAccount(private_key).address
+        finish_address[account] = private_key
+
     receipt_count_in_tree = tree.receipt_count_in_tree()
     receipt_count_for_lock = lock.get_receipt_count()
 
@@ -81,7 +86,7 @@ if __name__ == '__main__':
     if receipt_count_in_tree < receipt_count_for_lock:
         tree_generation_tx_id = tree.generate_merkle_tree()
         wait_receipt(w3, tree_generation_tx_id)
-
+    finish_index = 0
     for i in range(receipt_count_minimal, receipt_count_maximal + 1):
         print("Tree :", i, "receipt count:", i)
         origin = lock.get_receipt_count()
@@ -127,7 +132,6 @@ if __name__ == '__main__':
 
                 if len(tx_receipt_list) == i:
                     break
-
 
             # count lock tx
             pending_count = sum(1 for id in receipt_tx_id_pending_list if id is not "")
@@ -186,3 +190,38 @@ if __name__ == '__main__':
         # write to file
         with open(f"{output_path}/{i}" + ".json", "w+") as f:
             f.write(json.dumps(info))
+
+        receipt_counts = lock.get_receipt_count()
+        unexpired_receipts = []
+        for receipt_id in range(finish_index, receipt_counts):
+            receipt_info = lock.get_receipt(receipt_id)
+            owner = receipt_info[1]
+            amount = receipt_info[3]
+            receipt_endTime = receipt_info[5]
+            is_finished = receipt_info[6]
+            time_array = time.time()
+            timestamp = int(time_array)
+            if is_finished is True:
+                continue
+            if timestamp < receipt_endTime:
+                unexpired_receipts.append(receipt_id)
+            origin_balance = token.get_balance(finish_address[owner])
+            origin_lock_token = lock.get_lock_token(finish_address[owner])
+            print("receipt id:", receipt_id)
+            finish_tx = lock.finish(finish_address[owner], receipt_id)
+            wait_receipt(w3, finish_tx)
+            tx_receipt = get_receipt(w3, finish_tx)
+            event_amount = token.process_finish_transfer_event(tx_receipt)
+            receipt_info = lock.get_receipt(receipt_id)
+            is_finished = receipt_info[6]
+
+            after_balance = token.get_balance(finish_address[owner])
+            after_lock_token = lock.get_lock_token(finish_address[owner])
+
+            if is_finished is True and amount == event_amount and after_balance == origin_balance + amount and after_lock_token == origin_lock_token - amount:
+                print("Finish succeed.", "receipt id:", receipt_id, "Amount:", amount)
+            else:
+                print("Finish failed.", "receipt id:", receipt_id, "Amount:", amount, "Event amount:",
+                      event_amount, "balance:", origin_balance, after_balance, "lock token:", origin_lock_token,
+                      after_lock_token)
+        finish_index = min(unexpired_receipts)

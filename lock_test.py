@@ -8,7 +8,7 @@ class LockContract(object):
         self.address = addr
         self.gas_price = price
         self.lock_contract = web3.eth.contract(
-            address= addr,
+            address=addr,
             abi=api.ContractApi.lock_contract_abi
         )
 
@@ -33,13 +33,7 @@ class LockContract(object):
         try:
             account = self.Web3.eth.account.privateKeyToAccount(private_key)
             self.Web3.eth.defaultAccount = account.address
-            receipt = self.lock_contract.functions.receipts(index).call()
-            time_array = time.strptime(time.time(), "%Y-%m-%d %H:%M:%S")
-            timestamp = time.mktime(time_array)
-            if timestamp < receipt.endTime:
-                print("Can't finish")
-                return
-            finish_tx = self.lock_contract.functions.finifinishReceipt(index).buildTransaction(
+            finish_tx = self.lock_contract.functions.finishReceipt(index).buildTransaction(
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             finish_tx.update({'gas': 500000})
             finish_tx.update({'gasPrice': self.gas_price})
@@ -54,6 +48,10 @@ class LockContract(object):
     def get_receipt_info(self, index):
         receipt_info = self.lock_contract.functions.getReceiptInfo(index).call()
         return receipt_info
+
+    def get_receipt(self, index):
+        receipt = self.lock_contract.functions.receipts(index).call()
+        return receipt
 
     def get_user_receipts(self, private_key):
         account = self.Web3.eth.account.privateKeyToAccount(private_key)
