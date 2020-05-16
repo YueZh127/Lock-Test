@@ -1,5 +1,5 @@
 import api
-import time
+from logger import logger
 
 
 class LockContract(object):
@@ -20,14 +20,14 @@ class LockContract(object):
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             lock_tx.update({'gas': 500000})
             lock_tx.update({'gasPrice': self.gas_price})
-            print("lock_tx: ", lock_tx)
+            logger.info(f"lock_tx: {lock_tx}")
             signed_lock_tx = self.Web3.eth.account.signTransaction(lock_tx, private_key=private_key)
             lock_tx_id = self.Web3.eth.sendRawTransaction(signed_lock_tx.rawTransaction)
-            print(" - signed_lock_tx_id: ", self.Web3.toHex(lock_tx_id))
+            logger.info(f" - signed_lock_tx_id: {self.Web3.toHex(lock_tx_id)}")
             return self.Web3.toHex(lock_tx_id)
 
         except Exception as e:
-            print("Locking failed", e, private_key)
+            logger.error(f"Locking failed. {e}, {private_key}")
 
     def finish(self, private_key, index):
         try:
@@ -37,13 +37,13 @@ class LockContract(object):
                 {'nonce': self.Web3.eth.getTransactionCount(self.Web3.eth.defaultAccount)})
             finish_tx.update({'gas': 500000})
             finish_tx.update({'gasPrice': self.gas_price})
-            print("finish_tx: ", finish_tx)
+            logger.info(f"finish_tx: {finish_tx}")
             signed_finish_tx = self.Web3.eth.account.signTransaction(finish_tx, private_key=private_key)
             finish_tx_id = self.Web3.eth.sendRawTransaction(signed_finish_tx.rawTransaction)
-            print(" - signed_lock_tx_id: ", self.Web3.toHex(finish_tx_id))
+            logger.info(f" - signed_lock_tx_id: {self.Web3.toHex(finish_tx_id)}")
             return self.Web3.toHex(finish_tx_id)
         except Exception as e:
-            print("Finish failed", e, private_key)
+            logger.error(f"Finish failed {e}, {private_key}")
 
     def get_receipt_info(self, index):
         receipt_info = self.lock_contract.functions.getReceiptInfo(index).call()
@@ -61,8 +61,10 @@ class LockContract(object):
     def get_receipt_count(self):
         return self.lock_contract.functions.receiptCount().call()
 
-    def get_lock_token(self, private_key):
+    def get_lock_token(self, private_key, block_identifier=None):
         account = self.Web3.eth.account.privateKeyToAccount(private_key)
+        if block_identifier is not None:
+            return self.lock_contract.functions.getLockTokens(account.address).call(block_identifier=block_identifier)
         return self.lock_contract.functions.getLockTokens(account.address).call()
 
     def process_newreceipt_event(self, tx_receipt):
