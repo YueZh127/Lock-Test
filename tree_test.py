@@ -33,6 +33,7 @@ class TreeContract(object):
             return self.Web3.toHex(generated_tree_tx_id)
         except Exception as e:
             logger.error(f"Merkle tree generation failed. {e}")
+            return None
 
     def get_merkle_tree_path(self, index):
         try:

@@ -89,7 +89,10 @@ def create_receipts():
         if receipt_tx_id is not None:
             receipt_tx_id_pending_list[private_key_index] = receipt_tx_id
 
-    tree_generation_tx_id = tree.generate_merkle_tree()
+    tree_generation_tx_id = None
+    while tree_generation_tx_id is None:
+        tree_generation_tx_id = tree.generate_merkle_tree()
+
     wait_receipt(w3, tree_generation_tx_id)
     after_tree_count = tree.merkle_tree_count()
 
@@ -210,7 +213,8 @@ def reclaim(finish_index, count):
             continue
 
         finish_tx_id = lock.finish(address_to_private_key[owner], receipt_id)
-        finish_tx_id_pending[owner] = {'tx_id': finish_tx_id, 'receipt_id': receipt_id}
+        if finish_tx_id is not None:
+            finish_tx_id_pending[owner] = {'tx_id': finish_tx_id, 'receipt_id': receipt_id}
 
 
 if __name__ == '__main__':

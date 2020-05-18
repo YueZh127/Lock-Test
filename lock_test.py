@@ -44,6 +44,7 @@ class LockContract(object):
             return self.Web3.toHex(finish_tx_id)
         except Exception as e:
             logger.error(f"Finish failed {e}, {private_key}")
+            return None
 
     def get_receipt_info(self, index):
         receipt_info = self.lock_contract.functions.getReceiptInfo(index).call()
