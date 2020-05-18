@@ -82,6 +82,9 @@ def create_receipts():
             continue
 
         balance = token.get_balance(private_key)
+        if balance < 0:
+            continue
+
         amount = random.randint(minimum_allowance, min(allowance, maximal_lock_amount, balance))
         logger.info(f'Attempt lock {amount}')
         receipt_tx_id = lock.create_receipt(private_key,
