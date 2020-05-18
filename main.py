@@ -70,7 +70,9 @@ def create_receipts():
             # it is tx to create script
             tx_receipt = get_receipt(w3, receipt_tx_id_pending_list[private_key_index])
             receipt_id = lock.process_newreceipt_event(tx_receipt)
-            tx_receipt_list.append(receipt_id)
+
+            if tx_receipt_list.count(receipt_id) == 0:
+                tx_receipt_list.append(receipt_id)
             receipt_tx_id_pending_list[private_key_index] = ""  # reset
 
             if len(tx_receipt_list) == i:
