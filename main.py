@@ -1,6 +1,6 @@
 import json
+from web3.exceptions import TransactionNotFound
 from logger import logger
-
 from web3 import Web3
 from lock_test import LockContract
 from tree_test import TreeContract
@@ -12,7 +12,11 @@ import argparse
 
 
 def get_receipt(web3, tx_id):
-    return web3.eth.getTransactionReceipt(tx_id)
+    try:
+        return web3.eth.getTransactionReceipt(tx_id)
+    except TransactionNotFound:
+        logger.warning(f"Transaction not found: {tx_id}")
+        return get_receipt(web3, tx_id)
 
 
 def get_transaction(web3, tx_id):

@@ -40,7 +40,7 @@ class TreeContract(object):
             assert isinstance(path_info, object)
             return path_info
         except BadFunctionCallOutput as e:
-            logger.error(f"Merkle tree path generation failed. {e}")
+            logger.warning(f"Merkle tree path generation failed. {e}")
             return self.get_merkle_tree_path(index)
 
     def receipt_count_in_tree(self):
