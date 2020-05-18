@@ -26,6 +26,15 @@ def get_transaction(web3, tx_id):
         logger.error(e)
         return None
 
+def get_executed_transaction(web3, tx_id):
+    try:
+        result = web3.eth.getTransaction(tx_id)
+        if result is None or result.blockNumber is None:
+            return get_executed_transaction(web3, tx_id)
+    except Exception as e:
+        logger.error(e)
+        return get_executed_transaction(web3, tx_id)
+
 def wait_receipt(web3, tx_id):
     try:
         return web3.eth.waitForTransactionReceipt(tx_id, timeout=120)
@@ -197,7 +206,7 @@ def reclaim(finish_index, count):
             is_finished = finished_receipt_info[6]
 
             # double check
-            result = get_transaction(w3, tx_id)
+            result = get_executed_transaction(w3, tx_id)
             origin_balance = token.get_balance(address_to_private_key[owner], result.blockNumber - 1)
             origin_lock_token = lock.get_lock_token(address_to_private_key[owner], result.blockNumber - 1)
 
