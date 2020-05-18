@@ -192,11 +192,11 @@ def reclaim(finish_index, count):
             finished_receipt_info = lock.get_receipt(finished_receipt_id)
             is_finished = finished_receipt_info[6]
 
-            after_balance = token.get_balance(address_to_private_key[owner])
-            after_lock_token = lock.get_lock_token(address_to_private_key[owner])
-
             origin_balance = token.get_balance(address_to_private_key[owner], result.blockNumber - 1)
             origin_lock_token = lock.get_lock_token(address_to_private_key[owner], result.blockNumber - 1)
+
+            after_balance = token.get_balance(address_to_private_key[owner])
+            after_lock_token = lock.get_lock_token(address_to_private_key[owner])
 
             reclaimed_amount = finished_receipt_info[3]
             if is_finished is True and reclaimed_amount == event_amount and after_balance == origin_balance + reclaimed_amount and after_lock_token == origin_lock_token - reclaimed_amount:
