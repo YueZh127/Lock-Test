@@ -71,8 +71,9 @@ def create_receipts():
             tx_receipt = get_receipt(w3, receipt_tx_id_pending_list[private_key_index])
             receipt_id = lock.process_newreceipt_event(tx_receipt)
 
-            if tx_receipt_list.count(receipt_id) == 0:
-                tx_receipt_list.append(receipt_id)
+            # if tx_receipt_list.count(receipt_id) == 0:
+            tx_receipt_list.append(receipt_id)
+            logger.info(f"Created receipt {receipt_id}.")
             receipt_tx_id_pending_list[private_key_index] = ""  # reset
 
             if len(tx_receipt_list) == i:
