@@ -1,3 +1,5 @@
+from web3.exceptions import BadFunctionCallOutput
+
 import api
 from logger import logger
 
@@ -33,9 +35,13 @@ class TreeContract(object):
             logger.error(f"Merkle tree generation failed. {e}")
 
     def get_merkle_tree_path(self, index):
-        path_info = self.tree_contract.functions.GenerateMerklePath(receiptId=index).call()
-        assert isinstance(path_info, object)
-        return path_info
+        try:
+            path_info = self.tree_contract.functions.GenerateMerklePath(receiptId=index).call()
+            assert isinstance(path_info, object)
+            return path_info
+        except BadFunctionCallOutput as e:
+            logger.error(f"Merkle tree path generation failed. {e}")
+            return self.get_merkle_tree_path(index)
 
     def receipt_count_in_tree(self):
         return self.tree_contract.functions.ReceiptCountInTree().call()
