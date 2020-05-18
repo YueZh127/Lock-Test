@@ -182,7 +182,8 @@ def reclaim(finish_index, count):
         owner = receipt_info[1]
 
         if finish_tx_id_pending.get(owner) is not None:
-            result = get_transaction(w3, finish_tx_id_pending[owner]['tx_id'])
+            tx_id = finish_tx_id_pending[owner]['tx_id']
+            result = get_transaction(w3, tx_id)
             if result is not None and result.blockNumber is None: # if tx found but pending
                 # slow down request
                 time.sleep(10)
@@ -196,7 +197,7 @@ def reclaim(finish_index, count):
             is_finished = finished_receipt_info[6]
 
             # double check
-            result = get_transaction(w3, finish_tx_id_pending[owner]['tx_id'])
+            result = get_transaction(w3, tx_id)
             origin_balance = token.get_balance(address_to_private_key[owner], result.blockNumber - 1)
             origin_lock_token = lock.get_lock_token(address_to_private_key[owner], result.blockNumber - 1)
 
