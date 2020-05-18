@@ -195,6 +195,8 @@ def reclaim(finish_index, count):
             finished_receipt_info = lock.get_receipt(finished_receipt_id)
             is_finished = finished_receipt_info[6]
 
+            # double check
+            result = get_transaction(w3, finish_tx_id_pending[owner]['tx_id'])
             origin_balance = token.get_balance(address_to_private_key[owner], result.blockNumber - 1)
             origin_lock_token = lock.get_lock_token(address_to_private_key[owner], result.blockNumber - 1)
 
