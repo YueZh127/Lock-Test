@@ -82,8 +82,8 @@ def create_receipts():
             continue
 
         balance = token.get_balance(private_key)
-        if balance < 0:
-            logger.warning(f'{w3.eth.account.privateKeyToAccount(private_key)} not enough balance.')
+        if balance < minimum_allowance:
+            logger.warning(f'{w3.eth.account.privateKeyToAccount(private_key).address} not enough balance.')
             continue
 
         amount = random.randint(minimum_allowance, min(allowance, maximal_lock_amount, balance))
