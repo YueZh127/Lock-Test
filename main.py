@@ -31,6 +31,7 @@ def get_executed_transaction(web3, tx_id):
         result = web3.eth.getTransaction(tx_id)
         if result is None or result.blockNumber is None:
             return get_executed_transaction(web3, tx_id)
+        return result
     except Exception as e:
         logger.error(e)
         return get_executed_transaction(web3, tx_id)
