@@ -165,12 +165,15 @@ def reclaim(finish_index, count):
         end_index = receipt_id
         receipt_info = lock.get_receipt(receipt_id)
         receipt_end_time = receipt_info[5]
+        owner = receipt_info[1]
         is_finished = receipt_info[6]
         time_array = time.time()
         timestamp = int(time_array)
         if is_finished is True:
             continue
         if timestamp < receipt_end_time:
+            continue
+        if address_to_private_key.get(owner) is None:
             continue
 
         to_be_finished[receipt_id] = receipt_info
@@ -180,6 +183,7 @@ def reclaim(finish_index, count):
     if len(to_be_finished) is 0:
         return end_index
 
+    to_be_finished_count = len(to_be_finished)
     t = 0
     while True:
         index = t % len(to_be_finished)
@@ -219,7 +223,7 @@ def reclaim(finish_index, count):
                 logger.info(f"Finish succeed. receipt id: {finished_receipt_id}, Amount: {reclaimed_amount}, Owner: {owner})")
                 finished_count += 1
                 to_be_finished.pop(finished_receipt_id)
-                if finished_count == count:
+                if finished_count == to_be_finished_count:
                     return end_index
             else:
                 logger.info(f"Finish failed. receipt id: {finished_receipt_id}, Owner: {owner}, Amount: {reclaimed_amount},"
