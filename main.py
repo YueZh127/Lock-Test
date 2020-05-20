@@ -26,6 +26,7 @@ def get_transaction(web3, tx_id):
         logger.error(e)
         return None
 
+
 def get_executed_transaction(web3, tx_id):
     try:
         result = web3.eth.getTransaction(tx_id)
@@ -35,6 +36,7 @@ def get_executed_transaction(web3, tx_id):
     except Exception as e:
         logger.error(e)
         return get_executed_transaction(web3, tx_id)
+
 
 def wait_receipt(web3, tx_id):
     try:
@@ -57,7 +59,7 @@ def create_receipts():
 
         if approve_tx_id_pending_list[private_key_index] != "":
             result = get_transaction(w3, approve_tx_id_pending_list[private_key_index])
-            if result is not None and result.blockNumber is None: # if tx found but pending
+            if result is not None and result.blockNumber is None:  # if tx found but pending
                 # slow down request
                 time.sleep(10)
                 continue
@@ -71,13 +73,22 @@ def create_receipts():
             continue
 
         if receipt_tx_id_pending_list[private_key_index] != "":  # if already exists
+
             result = get_transaction(w3, receipt_tx_id_pending_list[private_key_index])
-            if result is not None and result.blockNumber is None: # if tx not found but pending
+            if result is None:
+                time.sleep(10)
+                double_check_result = get_transaction(w3, receipt_tx_id_pending_list[private_key_index])
+                if double_check_result is None:  # if tx not found
+                    receipt_tx_id_pending_list[private_key_index] = ""  # reset
+                    continue
+                else:
+                    result = double_check_result
+
+            if result.blockNumber is None:  # if tx  pending
                 # slow down request
                 time.sleep(10)
                 continue
 
-            # it is tx to create script
             tx_receipt = get_receipt(w3, receipt_tx_id_pending_list[private_key_index])
             receipt_id = lock.process_newreceipt_event(tx_receipt)
 
@@ -101,6 +112,8 @@ def create_receipts():
 
         amount = random.randint(minimum_allowance, min(allowance, maximal_lock_amount, balance))
         logger.info(f'Attempt lock {amount}')
+
+        # it is tx to create script
         receipt_tx_id = lock.create_receipt(private_key,
                                             target_addresses[j % len(target_addresses)], amount)
         if receipt_tx_id is not None:
@@ -198,7 +211,7 @@ def reclaim(finish_index, count):
         if finish_tx_id_pending.get(owner) is not None:
             tx_id = finish_tx_id_pending[owner]['tx_id']
             result = get_transaction(w3, tx_id)
-            if result is not None and result.blockNumber is None: # if tx found but pending
+            if result is not None and result.blockNumber is None:  # if tx found but pending
                 # slow down request
                 time.sleep(10)
                 continue
@@ -220,14 +233,16 @@ def reclaim(finish_index, count):
 
             reclaimed_amount = finished_receipt_info[3]
             if is_finished is True and reclaimed_amount == event_amount and after_balance == origin_balance + reclaimed_amount and after_lock_token == origin_lock_token - reclaimed_amount:
-                logger.info(f"Finish succeed. receipt id: {finished_receipt_id}, Amount: {reclaimed_amount}, Owner: {owner})")
+                logger.info(
+                    f"Finish succeed. receipt id: {finished_receipt_id}, Amount: {reclaimed_amount}, Owner: {owner})")
                 finished_count += 1
                 to_be_finished.pop(finished_receipt_id)
                 if finished_count == to_be_finished_count:
                     return end_index
             else:
-                logger.info(f"Finish failed. receipt id: {finished_receipt_id}, Owner: {owner}, Amount: {reclaimed_amount},"
-                      f"Event amount: {event_amount}, balance: {origin_balance}, {after_balance}, lock token: {origin_lock_token}, {after_lock_token})")
+                logger.info(
+                    f"Finish failed. receipt id: {finished_receipt_id}, Owner: {owner}, Amount: {reclaimed_amount},"
+                    f"Event amount: {event_amount}, balance: {origin_balance}, {after_balance}, lock token: {origin_lock_token}, {after_lock_token})")
                 raise Exception("Failed reclaim.")
 
         # attempt reclaim
