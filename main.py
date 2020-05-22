@@ -232,7 +232,7 @@ def reclaim(finish_index, count):
             after_lock_token = lock.get_lock_token(address_to_private_key[owner])
 
             reclaimed_amount = finished_receipt_info[3]
-            if is_finished is True and reclaimed_amount == event_amount:  #and after_balance == origin_balance + reclaimed_amount and after_lock_token == origin_lock_token - reclaimed_amount:
+            if reclaimed_amount == event_amount:  # and is_finished is True and after_balance == origin_balance + reclaimed_amount and after_lock_token == origin_lock_token - reclaimed_amount:
                 logger.info(
                     f"Finish succeed. receipt id: {finished_receipt_id}, Amount: {reclaimed_amount}, Owner: {owner})")
                 finished_count += 1
