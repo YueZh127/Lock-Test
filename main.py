@@ -194,7 +194,7 @@ def reclaim(finish_index, count):
             break
 
     if len(to_be_finished) is 0:
-        return end_index
+        return -1
 
     to_be_finished_count = len(to_be_finished)
     t = 0
@@ -323,4 +323,5 @@ if __name__ == '__main__':
             logger.info(f"Tree : {i}")
             create_receipts()
         if finish_receipt:
-            next_finish_index = reclaim(next_finish_index, i) + 1
+            end_index = reclaim(next_finish_index, i)
+            next_finish_index = next_finish_index if end_index == -1 else end_index + 1
